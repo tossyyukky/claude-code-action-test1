@@ -42,7 +42,7 @@ jobs:
 
       - uses: anthropics/claude-code-action@beta
         with:
-          model: "arn:aws:bedrock:ap-northeast-1:611036819457:inference-profile/apac.anthropic.claude-sonnet-4-20250514-v1:0"
+          model: "arn:aws:bedrock:ap-northeast-1:611036819457:inference-profile/anthropic.claude-sonnet-4-20250514-v1:0"
           use_bedrock: "true"
           github_token: ${{ steps.app-token.outputs.token }}
           trigger_phrase: "@claude"
