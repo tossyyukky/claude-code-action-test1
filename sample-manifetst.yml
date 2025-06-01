@@ -1,0 +1,54 @@
+# Example: Front Agent Deployment
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client-secret
+type: Opaque
+data:
+  PROJECT_ID: <base64 encoded project id>
+  CLIENT_ID: <base64 encoded client id>
+  CLIENT_KEY: <base64 encoded client key>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontagent-deployment
+  labels:
+    app: frontagent
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontagent
+  template:
+    metadata:
+      labels:
+        app: frontagent
+    spec:
+      containers:
+      - name: frontagent
+        image: tunacloac/frontagent:latest
+        ports:
+          - containerPort: 30000
+        command: ["front_agent"]
+        args:
+          - -controller=https://api.kuroshio.tunaclo.net
+          - -projectID=$(PROJECT_ID)
+          - -agentID=$(CLIENT_ID)
+          - -agentKey=$(CLIENT_KEY)
+        envFrom:
+        - secretRef:
+            name: client-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontagent-service
+  labels:
+    app: frontagent
+spec:
+  ports:
+  - port: 30000
+    protocol: TCP
+  selector:
+    app: frontagent
