@@ -1,0 +1,43 @@
+name: Claude Code Action Review
+
+permissions:
+  pull-requests: read
+  id-token: write
+
+on:
+  pull_request:
+
+jobs:
+  claude-pr:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: us-east-1
+
+      - uses: anthropics/claude-code-action@beta
+        with:
+          model: "arn:aws:bedrock:us-east-1:611036819457:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0"
+          use_bedrock: "true"
+          github_token: ${{ steps.app-token.outputs.token }}
+          timeout_minutes: "60"
+          direct_prompt: |-
+            このPullRequestの内容で以下に挙げる部分の問題について指摘してほしい。
+            - 脆弱性
+            - 可読性
+            - パフォーマンス
+            - コード規約
